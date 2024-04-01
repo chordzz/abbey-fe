@@ -1,6 +1,6 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import AbbeyLogo from "../../assets/logos/abbey.svg"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 
 
 const RegisterPage = () => {
@@ -10,7 +10,10 @@ const RegisterPage = () => {
     const [ email, setEmail ] = useState("")
     const [ username, setUsername ] = useState("")
     const [ password, setPassword ] = useState("")
+    const [ error, setError ] = useState("")
+
     const baseUrl = process.env.REACT_APP_BASE_URL
+    const navigate = useNavigate()
 
 
 
@@ -25,17 +28,42 @@ const RegisterPage = () => {
             password
         }
 
-        const response = await fetch(`${baseUrl}api/user/register`, {
-            method: 'POST',
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data)
-        })
-        .then( res => res.json())
+        try {
+            const response = await fetch(`${baseUrl}api/user/register`, {
+                method: 'POST',
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data)
+            })
+            .then( res => {
+                if (res.ok){
+                    return res.json()
+                } else if (res.status === 400){
+                    setError("An Error Occurred")
+                    throw new Error('400, An error occurred')
+                } else if (res.status === 403){
+                    setError("User with this email already exists")
+                    throw new Error('403, User with this email already exists')
+                }
+            })
+    
+            if(response.status === 200) {
+                navigate('/')
+            }
+        } catch(err) {
+            console.log(err.message)
+        }
         
-        console.log(response)
     }
+
+    useEffect(() => {
+        const timerId = setTimeout(() => {
+            setError("")
+        }, 2000);
+
+        return (() => clearTimeout(timerId))
+    }, [error])
 
     return (
         <div className="w-full h-screen bg-white flex items-center text-blue-900">
@@ -81,6 +109,16 @@ const RegisterPage = () => {
                             </span>
                             <input required type="password" name="password" className="mt-1 px-3 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 block w-full rounded-md sm:text-sm focus:ring-1" placeholder="Enter Password" onChange={(e) => setPassword(e.target.value)} />
                         </label>
+
+                        {
+                            error ?
+                            <div className="">
+                                <p className="text-sm font-semibold text-red-500">{error}</p>
+                            </div>
+                            :
+                            null
+                        }
+
                         <button type="submit" className="bg-blue-900 hover:bg-blue-800 active:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300 text-white py-2 rounded-md cursor-pointer font-bold">
                             Submit
                         </button>

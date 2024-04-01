@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import AbbeyLogo from "../../assets/logos/abbey.svg"
 import { Link, useNavigate } from "react-router-dom";
@@ -8,6 +8,7 @@ const LoginPage = () => {
 
     const [ email, setEmail ] = useState("")
     const [ password, setPassword ] = useState("")
+    const [ error, setError ] = useState("")
     const baseUrl = process.env.REACT_APP_BASE_URL
     const navigate = useNavigate()
 
@@ -19,23 +20,46 @@ const LoginPage = () => {
             password
         }
 
-        const response = await fetch(`${baseUrl}api/user/login`, {
-            method: 'POST',
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data)
-        })
-        .then( res => res.json())
+        try {
+            const response = await fetch(`${baseUrl}api/user/login`, {
+                method: 'POST',
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data)
+            })
+            
+            .then( res => {
+                if (res.ok){
+                    return res.json()
+                } else if (res.status === 404){
+                    setError("Incorrect Username")
+                    throw new Error('404, User Not Found')
+                } else if (res.status === 403){
+                    setError("Incorrect Password")
+                    throw new Error('403, Invalid Password')
+                }
+            })
+            
+            if (response.status === 200) {
+                localStorage.setItem("abbeyUserToken", response.token)
+                navigate('dashboard')
+            }
 
-        if (response.status === 200){
-            localStorage.setItem("abbeyUserToken", response.token)
-            navigate('dashboard')
+            // console.log(response)
+        } catch(err) {
+            console.log(err.message)
         }
-        else alert("Error!")
 
-        console.log(response)
     }
+
+    useEffect(() => {
+        const timerId = setTimeout(() => {
+            setError("")
+        }, 2000);
+
+        return (() => clearTimeout(timerId))
+    }, [error])
 
     return (
         <div className="w-full h-screen bg-white flex items-center text-blue-900">
@@ -60,9 +84,20 @@ const LoginPage = () => {
                             </span>
                             <input required type="password" name="password" className="mt-1 px-3 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 block w-full rounded-md sm:text-sm focus:ring-1" placeholder="Enter Password" onChange={(e) => setPassword(e.target.value)}/>
                         </label>
+
+                        {
+                            error ?
+                            <div className="">
+                                <p className="text-sm font-semibold text-red-500">{error}</p>
+                            </div>
+                            :
+                            null
+                        }
+
                         <button type="submit" className="bg-blue-900 hover:bg-blue-800 active:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300 text-white py-2 rounded-md cursor-pointer font-bold">
                             Submit
                         </button>
+                        
                         <div className="flex justify-between text-sm">
                             <span >
                                 <Link to={'/register'}>Register</Link></span>
