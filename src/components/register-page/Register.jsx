@@ -11,6 +11,7 @@ const RegisterPage = () => {
     const [ username, setUsername ] = useState("")
     const [ password, setPassword ] = useState("")
     const [ error, setError ] = useState("")
+    const [loading, setLoading ] = useState(false)
 
     const baseUrl = process.env.REACT_APP_BASE_URL
     const navigate = useNavigate()
@@ -29,6 +30,7 @@ const RegisterPage = () => {
         }
 
         try {
+            setLoading(true)
             const response = await fetch(`${baseUrl}api/user/register`, {
                 method: 'POST',
                 headers: {
@@ -38,11 +40,14 @@ const RegisterPage = () => {
             })
             .then( res => {
                 if (res.ok){
+                    setLoading(false)
                     return res.json()
                 } else if (res.status === 400){
+                    setLoading(false)
                     setError("An Error Occurred")
                     throw new Error('400, An error occurred')
                 } else if (res.status === 403){
+                    setLoading(false)
                     setError("User with this email already exists")
                     throw new Error('403, User with this email already exists')
                 }
@@ -119,7 +124,7 @@ const RegisterPage = () => {
                             null
                         }
 
-                        <button type="submit" className="bg-blue-900 hover:bg-blue-800 active:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300 text-white py-2 rounded-md cursor-pointer font-bold">
+                        <button type="submit" className="bg-blue-900 hover:bg-blue-800 active:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300 text-white py-2 rounded-md cursor-pointer font-bold" disabled={loading}>
                             Submit
                         </button>
                         <span className="text-center text-sm font-light cursor-pointer">

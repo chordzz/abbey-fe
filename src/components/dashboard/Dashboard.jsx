@@ -10,13 +10,13 @@ const Dashboard = () => {
   const [activeList, setActiveList] = useState('myFriends')
   const [allFriends, setAllFriends] = useState([])
   const [myFriends, setMyFriends] = useState([])
+  
 
   const token = localStorage.getItem("abbeyUserToken")
   const baseUrl = process.env.REACT_APP_BASE_URL
   const navigate = useNavigate()
 
   const fetchUserDetails = async (token) => {
-
     const response = await fetch(`${baseUrl}api/user/`, {
       method: 'GET',
       headers: {
@@ -34,7 +34,6 @@ const Dashboard = () => {
   }
 
   const fetchAllFriends = async () => {
-
     const response = await fetch(`${baseUrl}api/friend/all`)
     .then( res => res.json())
 

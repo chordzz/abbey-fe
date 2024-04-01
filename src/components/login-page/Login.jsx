@@ -9,6 +9,7 @@ const LoginPage = () => {
     const [ email, setEmail ] = useState("")
     const [ password, setPassword ] = useState("")
     const [ error, setError ] = useState("")
+    const [loading, setLoading ] = useState(false)
     const baseUrl = process.env.REACT_APP_BASE_URL
     const navigate = useNavigate()
 
@@ -21,6 +22,7 @@ const LoginPage = () => {
         }
 
         try {
+            setLoading(true)
             const response = await fetch(`${baseUrl}api/user/login`, {
                 method: 'POST',
                 headers: {
@@ -31,11 +33,14 @@ const LoginPage = () => {
             
             .then( res => {
                 if (res.ok){
+                    setLoading(false)
                     return res.json()
                 } else if (res.status === 404){
+                    setLoading(false)
                     setError("Incorrect Username")
                     throw new Error('404, User Not Found')
                 } else if (res.status === 403){
+                    setLoading(false)
                     setError("Incorrect Password")
                     throw new Error('403, Invalid Password')
                 }
@@ -94,7 +99,7 @@ const LoginPage = () => {
                             null
                         }
 
-                        <button type="submit" className="bg-blue-900 hover:bg-blue-800 active:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300 text-white py-2 rounded-md cursor-pointer font-bold">
+                        <button type="submit" className="bg-blue-900 hover:bg-blue-800 active:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300 text-white py-2 rounded-md cursor-pointer font-bold" disabled={loading}>
                             Submit
                         </button>
                         
